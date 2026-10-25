@@ -5,7 +5,7 @@ English | [繁體中文](README.zh-TW.md)
 A customizable SwiftUI capsule segmented control with adjustable corner radius, colors, and item count, supporting both tap and drag to switch.
 
 <p align="center">
-  <img src="docs/demo.gif" alt="CapsuleSegmentKit demo: switching by tap and drag" width="295">
+  <img src="docs/demo-en.gif" alt="CapsuleSegmentKit demo: switching by tap and drag" width="295">
 </p>
 
 ## Features

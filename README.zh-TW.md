@@ -5,7 +5,7 @@
 可自訂兩側弧度、顏色與數量，並支援拖曳切換的 SwiftUI 膠囊分段控制元件。
 
 <p align="center">
-  <img src="docs/demo.gif" alt="CapsuleSegmentKit 示範：點擊與拖曳切換" width="295">
+  <img src="docs/demo-zh.gif" alt="CapsuleSegmentKit 示範：點擊與拖曳切換" width="295">
 </p>
 
 ## 功能
