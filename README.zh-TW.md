@@ -2,6 +2,8 @@
 
 [English](README.md) | 繁體中文
 
+[![CI](https://github.com/dorothyTao5/CapsuleSegmentKit/actions/workflows/ci.yml/badge.svg)](https://github.com/dorothyTao5/CapsuleSegmentKit/actions/workflows/ci.yml)
+
 可自訂兩側弧度、顏色與數量，並支援拖曳切換的 SwiftUI 膠囊分段控制元件。
 
 <p align="center">

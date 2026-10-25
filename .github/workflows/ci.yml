@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: macos-26
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Show the Swift version
+        run: swift --version
+
+      - name: Build
+        run: swift build
+
+      - name: Run tests
+        run: swift test
