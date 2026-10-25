@@ -1,38 +1,36 @@
 # CapsuleSegmentUIKitExample
 
-示範在 **UIKit 專案（純 Swift 程式碼、不用 Storyboard）** 中使用 **CapsuleSegmentKit**。
+Shows how to use **CapsuleSegmentKit** in a UIKit app built entirely in code, without storyboards.
 
-## 執行
+## Run the Example
 
-1. 先關閉已開啟 `CapsuleSegmentKit` 套件的 Xcode 視窗。
-2. 打開 `CapsuleSegmentUIKitExample.xcodeproj`。
-3. scheme 選 `CapsuleSegmentUIKitExample`，執行目標選 iPhone 模擬器，按 ⌘R。
+1. Close any Xcode window that has the `CapsuleSegmentKit` package open.
+2. Open `CapsuleSegmentUIKitExample.xcodeproj`.
+3. Choose the `CapsuleSegmentUIKitExample` scheme and an iPhone simulator, then press ⌘R.
 
-## 原理
+## How It Works
 
-CapsuleSegmentKit 是 SwiftUI 元件，UIKit 透過 `UIHostingController` 使用它。
-本範例把這層包成 `CapsuleSegmentHostingController`，用起來就像一般的 UIViewController：
+CapsuleSegmentKit is a SwiftUI control, so UIKit uses it through `UIHostingController`. This example
+wraps that in `CapsuleSegmentHostingController`, which you can use like any other view controller:
 
 ```swift
 import UIKit
 
 final class MyViewController: UIViewController {
-
     private let segment = CapsuleSegmentHostingController(
-        items: ["進行中", "已完成"],
+        items: ["In Progress", "Done"],
         style: CapsuleSegmentStyle(
             backgroundColor: UIColor.systemOrange.withAlphaComponent(0.15),
             selectedSegmentColor: .systemOrange,
             textColor: .systemOrange,
             selectedTextColor: .white,
-            cornerRadius: nil          // nil = 半圓（預設）
+            cornerRadius: nil  // nil = capsule (default)
         )
     )
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // 加入畫面
         addChild(segment)
         segment.view.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(segment.view)
@@ -40,27 +38,27 @@ final class MyViewController: UIViewController {
             segment.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             segment.view.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             segment.view.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            segment.view.heightAnchor.constraint(equalToConstant: 40)
+            segment.view.heightAnchor.constraint(equalToConstant: 40),
         ])
         segment.didMove(toParent: self)
 
-        // 監聽切換（點擊或拖曳）
+        // Called on tap or drag.
         segment.onSelectionChanged = { index in
-            print("選中：\(index)")
+            print("Selected: \(index)")
         }
 
-        // 用程式切換
+        // Switch programmatically.
         segment.selectedIndex = 1
     }
 }
 ```
 
-## 檔案
+## Files
 
-| 檔案 | 說明 |
-|------|------|
-| `CapsuleSegmentHostingController.swift` | UIKit ↔ SwiftUI 橋接，可直接複製到你的專案 |
-| `ViewController.swift` | 3 個使用範例：自訂顏色切換內容、預設樣式、自訂弧度並關閉拖曳 |
-| `AppDelegate.swift` / `SceneDelegate.swift` | 不使用 Storyboard 的 App 進入點 |
+| File | Description |
+|------|-------------|
+| `CapsuleSegmentHostingController.swift` | The UIKit–SwiftUI bridge. Copy it into your project. |
+| `ViewController.swift` | Three examples: custom colors that switch content, the default style, and a custom corner radius without dragging. |
+| `AppDelegate.swift` / `SceneDelegate.swift` | The app entry point without a storyboard. |
 
-最低需求：iOS 17。
+Requires iOS 17 or later.

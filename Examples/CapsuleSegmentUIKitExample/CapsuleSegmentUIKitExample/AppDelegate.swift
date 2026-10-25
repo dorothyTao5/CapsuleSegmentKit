@@ -10,14 +10,17 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         true
     }
 
-    // 不使用 Storyboard，直接指定 SceneDelegate
+    // The app has no storyboard, so it provides the scene delegate in code.
     func application(
         _ application: UIApplication,
         configurationForConnecting connectingSceneSession: UISceneSession,
         options: UIScene.ConnectionOptions
     ) -> UISceneConfiguration {
-        let config = UISceneConfiguration(name: "Default", sessionRole: connectingSceneSession.role)
-        config.delegateClass = SceneDelegate.self
-        return config
+        let configuration = UISceneConfiguration(
+            name: "Default",
+            sessionRole: connectingSceneSession.role
+        )
+        configuration.delegateClass = SceneDelegate.self
+        return configuration
     }
 }

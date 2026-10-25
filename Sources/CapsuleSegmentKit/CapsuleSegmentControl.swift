@@ -1,81 +1,100 @@
 import SwiftUI
 
-/// 一個可自訂的膠囊分段控制元件。
+/// A segmented control with capsule-shaped ends that switches by tap or drag.
 ///
-/// - 兩側弧度：`cornerRadius` 為 `nil` 時是半圓（膠囊形），也可以指定固定半徑。
-/// - 顏色：可自訂背景顏色、選中 segment 顏色與文字顏色。
-/// - 數量：預設為 2 個項目。
-/// - 切換：點擊任一項目，或按住選中的 segment 左右拖曳，放開後自動吸附。
+/// By default, the control shows two items with fully rounded ends. You can customize the
+/// corner radius, the colors, and the number of items.
+///
+/// ```swift
+/// @State private var selectedIndex = 0
+///
+/// var body: some View {
+///     CapsuleSegmentControl(
+///         selectedIndex: $selectedIndex,
+///         items: ["Day", "Week", "Month"]
+///     )
+/// }
+/// ```
+///
+/// People can tap any item, or press and drag the selected segment. When they release it,
+/// the segment snaps to the nearest item.
 public struct CapsuleSegmentControl: View {
-    /// 選中的索引
+    /// The index of the selected item.
     @Binding public var selectedIndex: Int
 
-    /// 分段項目
+    /// The titles of the items, in display order.
     public let items: [String]
 
-    /// 背景顏色
+    /// The color of the track behind the items.
     public let backgroundColor: Color
 
-    /// 選中的 segment 顏色
+    /// The color of the segment that marks the selected item.
     public let selectedSegmentColor: Color
 
-    /// 文字顏色（未選中）
+    /// The text color of unselected items.
     public let textColor: Color
 
-    /// 文字顏色（選中）
+    /// The text color of the selected item.
     public let selectedTextColor: Color
 
-    /// 兩側的圓角半徑（`nil` 表示半圓形）
+    /// The corner radius of both ends, or `nil` for fully rounded ends.
     public let cornerRadius: CGFloat?
 
-    /// 選中 segment 與背景邊緣的間距
+    /// The spacing between the selected segment and the edge of the track.
     public let segmentInset: CGFloat
 
-    /// 元件高度
+    /// The height of the control.
     public let height: CGFloat
 
-    /// 文字字型
+    /// The font of the item titles.
     public let font: Font
 
-    /// 是否允許拖曳切換
+    /// A Boolean value that indicates whether people can drag the selected segment.
     public let isDragEnabled: Bool
 
-    /// 切換時是否有觸覺回饋（iPhone）
+    /// A Boolean value that indicates whether changing the selection plays haptic feedback.
     public let hapticFeedback: Bool
 
-    /// 拖曳中的狀態；手勢結束或被取消時會自動以彈簧動畫歸位
+    /// The in-progress drag, which resets with a spring animation when the gesture ends.
     @GestureState(resetTransaction: Transaction(animation: CapsuleSegmentControl.snapAnimation))
     private var drag: DragInfo? = nil
 
+    /// The animation that moves the selected segment to its resting position.
     static let snapAnimation: Animation = .spring(response: 0.3, dampingFraction: 0.75)
 
-    /// 移動距離小於此值視為點擊
+    /// The maximum movement, in points, that still counts as a tap.
     static let tapThreshold: CGFloat = 6
 
+    /// The state of an in-progress drag.
     struct DragInfo: Equatable {
-        /// 是否從選中的 segment 開始拖曳
+        /// A Boolean value that indicates whether the drag started on the selected segment.
         var isOnThumb: Bool
-        /// 水平位移
+
+        /// The horizontal distance moved since the drag started.
         var translation: CGFloat
     }
 
-    /// 初始化方法
+    /// Creates a capsule segmented control.
+    ///
     /// - Parameters:
-    ///   - selectedIndex: 綁定的選中索引
-    ///   - items: 分段項目的標題陣列（預設為 2 個項目）
-    ///   - backgroundColor: 背景顏色（預設為淺灰色）
-    ///   - selectedSegmentColor: 選中的 segment 顏色（預設為白色）
-    ///   - textColor: 未選中時的文字顏色（預設為 `.primary`）
-    ///   - selectedTextColor: 選中時的文字顏色（預設為 `.primary`）
-    ///   - cornerRadius: 兩側圓角半徑，`nil` 表示半圓形（預設為 `nil`）
-    ///   - segmentInset: 選中 segment 的內縮距離（預設為 2）
-    ///   - height: 元件高度（預設為 40）
-    ///   - font: 文字字型（預設為 14pt medium）
-    ///   - isDragEnabled: 是否允許拖曳切換（預設為 `true`）
-    ///   - hapticFeedback: 切換時是否有觸覺回饋（預設為 `true`）
+    ///   - selectedIndex: A binding to the index of the selected item.
+    ///   - items: The titles of the items. The default is two items.
+    ///   - backgroundColor: The color of the track behind the items.
+    ///   - selectedSegmentColor: The color of the segment that marks the selected item.
+    ///   - textColor: The text color of unselected items.
+    ///   - selectedTextColor: The text color of the selected item.
+    ///   - cornerRadius: The corner radius of both ends. Pass `nil` for fully rounded ends.
+    ///     Values larger than half the height are reduced to half the height.
+    ///   - segmentInset: The spacing between the selected segment and the edge of the track.
+    ///   - height: The height of the control.
+    ///   - font: The font of the item titles.
+    ///   - isDragEnabled: A Boolean value that indicates whether people can drag the selected
+    ///     segment.
+    ///   - hapticFeedback: A Boolean value that indicates whether changing the selection plays
+    ///     haptic feedback.
     public init(
         selectedIndex: Binding<Int>,
-        items: [String] = ["選項 1", "選項 2"],
+        items: [String] = ["Option 1", "Option 2"],
         backgroundColor: Color = Color.gray.opacity(0.2),
         selectedSegmentColor: Color = .white,
         textColor: Color = .primary,
@@ -101,71 +120,72 @@ public struct CapsuleSegmentControl: View {
         self.hapticFeedback = hapticFeedback
     }
 
-    // MARK: - 計算
+    // MARK: - Layout Calculations
 
-    /// 依高度算出實際使用的圓角（最大為半圓）
+    /// Returns the corner radius to draw for the given height, capped at half the height.
     func resolvedCornerRadius(forHeight height: CGFloat) -> CGFloat {
-        let capsule = height / 2
-        guard let cornerRadius else { return capsule }
-        return min(cornerRadius, capsule)
+        let capsuleRadius = height / 2
+        guard let cornerRadius else { return capsuleRadius }
+        return min(cornerRadius, capsuleRadius)
     }
 
-    /// 限制在合法範圍內的選中索引
+    /// The selected index, clamped to the range of valid item indices.
     var clampedIndex: Int {
         guard !items.isEmpty else { return 0 }
         return min(max(selectedIndex, 0), items.count - 1)
     }
 
-    /// 某個 x 座標落在第幾個項目
+    /// Returns the index of the item at the given horizontal position.
     static func index(atX x: CGFloat, itemWidth: CGFloat, count: Int) -> Int {
         guard count > 0, itemWidth > 0 else { return 0 }
         return min(max(Int(x / itemWidth), 0), count - 1)
     }
 
-    /// 把滑塊位置限制在第一個與最後一個項目之間
+    /// Returns the given segment position, clamped between the first and last items.
     static func clampedThumbX(_ x: CGFloat, itemWidth: CGFloat, count: Int) -> CGFloat {
         let maxX = CGFloat(max(count - 1, 0)) * itemWidth
         return min(max(x, 0), maxX)
     }
 
-    /// 滑塊位置最接近的項目
+    /// Returns the index of the item nearest to the given segment position.
     static func nearestIndex(forThumbX x: CGFloat, itemWidth: CGFloat, count: Int) -> Int {
         guard count > 0, itemWidth > 0 else { return 0 }
         return min(max(Int((x / itemWidth).rounded()), 0), count - 1)
     }
 
-    // MARK: - Body
+    // MARK: - View
 
     public var body: some View {
         GeometryReader { geometry in
             let count = max(items.count, 1)
-            let totalWidth = geometry.size.width
             let totalHeight = geometry.size.height
-            let itemWidth = totalWidth / CGFloat(count)
+            let itemWidth = geometry.size.width / CGFloat(count)
 
             let outerRadius = resolvedCornerRadius(forHeight: totalHeight)
             let segmentWidth = max(itemWidth - segmentInset * 2, 0)
             let segmentHeight = max(totalHeight - segmentInset * 2, 0)
-            // 內層圓角 = 外層圓角 - 內縮，讓兩層弧度保持同心
+            // Subtracting the inset keeps the inner and outer corners concentric.
             let innerRadius = max(outerRadius - segmentInset, 0)
 
-            // 滑塊目前位置：拖曳中跟著手指，否則停在選中項目
+            // While dragging, the segment follows the finger; otherwise it rests on the selection.
             let isDraggingThumb = drag?.isOnThumb == true
-            let baseX = CGFloat(clampedIndex) * itemWidth
+            let restingX = CGFloat(clampedIndex) * itemWidth
             let thumbX = isDraggingThumb
-                ? Self.clampedThumbX(baseX + (drag?.translation ?? 0), itemWidth: itemWidth, count: items.count)
-                : baseX
-            // 文字高亮跟著滑塊走
+                ? Self.clampedThumbX(
+                    restingX + (drag?.translation ?? 0),
+                    itemWidth: itemWidth,
+                    count: items.count
+                )
+                : restingX
+            // The highlighted title follows the segment while dragging.
             let highlightedIndex = isDraggingThumb
                 ? Self.nearestIndex(forThumbX: thumbX, itemWidth: itemWidth, count: items.count)
                 : clampedIndex
 
             ZStack(alignment: .leading) {
-                // 背景
                 RoundedRectangle(cornerRadius: outerRadius, style: .continuous)
                     .fill(backgroundColor)
 
-                // 選中的滑塊
                 if !items.isEmpty {
                     RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
                         .fill(selectedSegmentColor)
@@ -176,19 +196,28 @@ public struct CapsuleSegmentControl: View {
                         .animation(Self.snapAnimation, value: clampedIndex)
                 }
 
-                // 分段項目
                 HStack(spacing: 0) {
                     ForEach(items.indices, id: \.self) { index in
                         #if os(tvOS)
-                        // tvOS 沒有觸控拖曳，使用按鈕配合遙控器焦點
+                        // tvOS has no touch dragging, so each item is a focusable button.
                         Button {
                             withAnimation(Self.snapAnimation) { selectedIndex = index }
                         } label: {
-                            label(at: index, highlighted: highlightedIndex, width: itemWidth, height: totalHeight)
+                            label(
+                                at: index,
+                                highlightedIndex: highlightedIndex,
+                                width: itemWidth,
+                                height: totalHeight
+                            )
                         }
                         .buttonStyle(.plain)
                         #else
-                        label(at: index, highlighted: highlightedIndex, width: itemWidth, height: totalHeight)
+                        label(
+                            at: index,
+                            highlightedIndex: highlightedIndex,
+                            width: itemWidth,
+                            height: totalHeight
+                        )
                         #endif
                     }
                 }
@@ -202,13 +231,18 @@ public struct CapsuleSegmentControl: View {
         .frame(height: height)
     }
 
-    /// 單一項目的文字
-    private func label(at index: Int, highlighted: Int, width: CGFloat, height: CGFloat) -> some View {
+    /// Returns the title view for the item at the given index.
+    private func label(
+        at index: Int,
+        highlightedIndex: Int,
+        width: CGFloat,
+        height: CGFloat
+    ) -> some View {
         Text(items[index])
             .font(font)
             .lineLimit(1)
-            .foregroundStyle(highlighted == index ? selectedTextColor : textColor)
-            .animation(.easeInOut(duration: 0.15), value: highlighted)
+            .foregroundStyle(highlightedIndex == index ? selectedTextColor : textColor)
+            .animation(.easeInOut(duration: 0.15), value: highlightedIndex)
             .frame(width: width, height: height)
             .contentShape(Rectangle())
             .accessibilityAddTraits(index == clampedIndex ? [.isButton, .isSelected] : .isButton)
@@ -218,37 +252,52 @@ public struct CapsuleSegmentControl: View {
     }
 
     #if !os(tvOS)
-    /// 點擊與拖曳共用一個手勢：
-    /// - 移動很小 → 視為點擊，切到手指所在項目
-    /// - 從選中的 segment 開始拖 → 滑塊跟著手指，放開後吸附到最近項目
+    /// Returns a gesture that handles both taps and drags.
+    ///
+    /// A touch that barely moves selects the item under the finger. A drag that starts on the
+    /// selected segment moves the segment with the finger and snaps it to the nearest item on
+    /// release.
     private func dragGesture(itemWidth: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .updating($drag) { value, state, _ in
                 guard !items.isEmpty else { return }
                 if state == nil {
-                    let start = Self.index(atX: value.startLocation.x, itemWidth: itemWidth, count: items.count)
-                    state = DragInfo(isOnThumb: isDragEnabled && start == clampedIndex, translation: 0)
+                    let startIndex = Self.index(
+                        atX: value.startLocation.x,
+                        itemWidth: itemWidth,
+                        count: items.count
+                    )
+                    state = DragInfo(
+                        isOnThumb: isDragEnabled && startIndex == clampedIndex,
+                        translation: 0
+                    )
                 }
                 state?.translation = value.translation.width
             }
             .onEnded { value in
                 guard !items.isEmpty else { return }
-                let moved = abs(value.translation.width) > Self.tapThreshold
+                let didMove = abs(value.translation.width) > Self.tapThreshold
                     || abs(value.translation.height) > Self.tapThreshold
-                let startIndex = Self.index(atX: value.startLocation.x, itemWidth: itemWidth, count: items.count)
+                let startIndex = Self.index(
+                    atX: value.startLocation.x,
+                    itemWidth: itemWidth,
+                    count: items.count
+                )
 
                 var newIndex: Int?
-                if !moved {
-                    // 點擊
+                if !didMove {
                     newIndex = Self.index(atX: value.location.x, itemWidth: itemWidth, count: items.count)
                 } else if isDragEnabled && startIndex == clampedIndex {
-                    // 拖曳結束，吸附到最近項目
-                    let x = Self.clampedThumbX(
+                    let releasedX = Self.clampedThumbX(
                         CGFloat(clampedIndex) * itemWidth + value.translation.width,
                         itemWidth: itemWidth,
                         count: items.count
                     )
-                    newIndex = Self.nearestIndex(forThumbX: x, itemWidth: itemWidth, count: items.count)
+                    newIndex = Self.nearestIndex(
+                        forThumbX: releasedX,
+                        itemWidth: itemWidth,
+                        count: items.count
+                    )
                 }
 
                 if let newIndex, newIndex != selectedIndex {
@@ -261,30 +310,33 @@ public struct CapsuleSegmentControl: View {
 
 // MARK: - Previews
 
-/// 預覽用：提供可互動的 @State
+/// A container that gives previews an interactive selection state.
 private struct PreviewHost: View {
     @State private var index: Int
-    private let make: (Binding<Int>) -> CapsuleSegmentControl
+    private let makeControl: (Binding<Int>) -> CapsuleSegmentControl
 
-    init(_ initial: Int = 0, _ make: @escaping (Binding<Int>) -> CapsuleSegmentControl) {
-        _index = State(initialValue: initial)
-        self.make = make
+    init(
+        _ initialIndex: Int = 0,
+        _ makeControl: @escaping (Binding<Int>) -> CapsuleSegmentControl
+    ) {
+        _index = State(initialValue: initialIndex)
+        self.makeControl = makeControl
     }
 
-    var body: some View { make($index) }
+    var body: some View { makeControl($index) }
 }
 
-#Preview("預設樣式") {
+#Preview("Default") {
     PreviewHost { CapsuleSegmentControl(selectedIndex: $0) }
         .padding()
 }
 
-#Preview("自訂顏色") {
+#Preview("Custom Colors") {
     VStack(spacing: 20) {
         PreviewHost {
             CapsuleSegmentControl(
                 selectedIndex: $0,
-                items: ["首頁", "探索"],
+                items: ["Home", "Explore"],
                 backgroundColor: .blue.opacity(0.2),
                 selectedSegmentColor: .blue,
                 selectedTextColor: .white
@@ -293,7 +345,7 @@ private struct PreviewHost: View {
         PreviewHost(1) {
             CapsuleSegmentControl(
                 selectedIndex: $0,
-                items: ["音樂", "影片", "照片"],
+                items: ["Music", "Videos", "Photos"],
                 backgroundColor: .purple.opacity(0.2),
                 selectedSegmentColor: .purple,
                 selectedTextColor: .white
@@ -303,11 +355,17 @@ private struct PreviewHost: View {
     .padding()
 }
 
-#Preview("自訂兩側弧度") {
+#Preview("Corner Radius") {
     VStack(spacing: 20) {
-        PreviewHost { CapsuleSegmentControl(selectedIndex: $0, items: ["直角", "選項 2"], cornerRadius: 0) }
-        PreviewHost { CapsuleSegmentControl(selectedIndex: $0, items: ["小圓角", "選項 2"], cornerRadius: 8) }
-        PreviewHost(1) { CapsuleSegmentControl(selectedIndex: $0, items: ["預設半圓", "選項 2"]) }
+        PreviewHost {
+            CapsuleSegmentControl(selectedIndex: $0, items: ["Square", "Option 2"], cornerRadius: 0)
+        }
+        PreviewHost {
+            CapsuleSegmentControl(selectedIndex: $0, items: ["Rounded", "Option 2"], cornerRadius: 8)
+        }
+        PreviewHost(1) {
+            CapsuleSegmentControl(selectedIndex: $0, items: ["Capsule", "Option 2"])
+        }
     }
     .padding()
 }

@@ -1,23 +1,24 @@
-import UIKit
-import SwiftUI
-// 1️⃣ 匯入套件
 import CapsuleSegmentKit
+import SwiftUI
+import UIKit
 
-// CapsuleSegmentKit 是用 SwiftUI 寫的元件。
-// 在 UIKit 專案中，用 UIHostingController 包起來，就能像一般 UIViewController 一樣使用。
+// CapsuleSegmentKit is a SwiftUI control. In UIKit, wrap it in a UIHostingController and use it
+// like any other view controller.
 
-/// UIKit 用的外觀設定
+/// The appearance of a capsule segmented control in UIKit.
 struct CapsuleSegmentStyle {
     var backgroundColor: UIColor = .systemGray5
     var selectedSegmentColor: UIColor = .white
     var textColor: UIColor = .label
     var selectedTextColor: UIColor = .label
-    /// nil = 兩側半圓（預設）
+
+    /// The corner radius of both ends, or `nil` for fully rounded ends.
     var cornerRadius: CGFloat? = nil
+
     var isDragEnabled: Bool = true
 }
 
-/// 在 UIKit 與 SwiftUI 之間共用的狀態
+/// The state that UIKit and SwiftUI share.
 @Observable
 final class CapsuleSegmentModel {
     var selectedIndex: Int
@@ -34,7 +35,7 @@ final class CapsuleSegmentModel {
     }
 }
 
-/// 被 UIHostingController 包住的 SwiftUI 畫面
+/// The SwiftUI view that the hosting controller displays.
 struct CapsuleSegmentRootView: View {
     @Bindable var model: CapsuleSegmentModel
 
@@ -55,7 +56,7 @@ struct CapsuleSegmentRootView: View {
     }
 }
 
-/// 給 UIKit 使用的 CapsuleSegment 控制器
+/// A view controller that displays a capsule segmented control in UIKit.
 ///
 /// ```swift
 /// let segment = CapsuleSegmentHostingController(items: ["A", "B"])
@@ -65,26 +66,25 @@ struct CapsuleSegmentRootView: View {
 /// segment.didMove(toParent: self)
 /// ```
 final class CapsuleSegmentHostingController: UIHostingController<CapsuleSegmentRootView> {
-
     private let model: CapsuleSegmentModel
 
-    /// 選中項目改變時呼叫（點擊、拖曳或程式設定）
+    /// Called when the selection changes by tap, drag, or code.
     var onSelectionChanged: ((Int) -> Void)?
 
-    /// 目前選中的索引，也可以用程式設定
+    /// The index of the selected item.
     var selectedIndex: Int {
         get { model.selectedIndex }
         set { model.selectedIndex = newValue }
     }
 
-    /// 項目標題，可以隨時更換
+    /// The titles of the items.
     var items: [String] {
         get { model.items }
         set { model.items = newValue }
     }
 
     init(
-        items: [String] = ["選項 1", "選項 2"],
+        items: [String] = ["Option 1", "Option 2"],
         selectedIndex: Int = 0,
         style: CapsuleSegmentStyle = CapsuleSegmentStyle()
     ) {
@@ -97,7 +97,7 @@ final class CapsuleSegmentHostingController: UIHostingController<CapsuleSegmentR
     }
 
     @MainActor required dynamic init?(coder aDecoder: NSCoder) {
-        fatalError("請使用 init(items:selectedIndex:style:)")
+        fatalError("Use init(items:selectedIndex:style:) instead.")
     }
 
     override func viewDidLoad() {

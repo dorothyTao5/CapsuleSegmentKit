@@ -1,5 +1,6 @@
-import SwiftUI
 import CapsuleSegmentKit
+import SwiftUI
+
 #if os(macOS)
 import AppKit
 #endif
@@ -8,7 +9,7 @@ import AppKit
 struct CapsuleSegmentDemoApp: App {
     init() {
         #if os(macOS)
-        // 從 Swift Package 執行時，讓視窗正常顯示在最前面
+        // Bring the window to the front when the app runs from a Swift package.
         NSApplication.shared.setActivationPolicy(.regular)
         NSApplication.shared.activate(ignoringOtherApps: true)
         #endif
