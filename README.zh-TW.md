@@ -21,6 +21,11 @@
 - **支援 SwiftUI 與 UIKit**：UIKit 透過 `UIHostingController` 使用，附完整範例
 - **無第三方依賴**
 
+## 文件
+
+完整的英文文件（包含 Getting Started 教學）在
+[dorothytao5.github.io/CapsuleSegmentKit](https://dorothytao5.github.io/CapsuleSegmentKit/documentation/capsulesegmentkit/)。
+
 ## 安裝
 
 ### Swift Package Manager

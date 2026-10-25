@@ -21,6 +21,11 @@ A customizable SwiftUI capsule segmented control with adjustable corner radius, 
 - **SwiftUI and UIKit**: use it in UIKit through `UIHostingController`, with a complete example
 - **No third-party dependencies**
 
+## Documentation
+
+Read the full documentation, including a getting started guide, at
+[dorothytao5.github.io/CapsuleSegmentKit](https://dorothytao5.github.io/CapsuleSegmentKit/documentation/capsulesegmentkit/).
+
 ## Installation
 
 ### Swift Package Manager

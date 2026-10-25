@@ -1,0 +1,57 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Documentation
+    runs-on: macos-26
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Build the documentation archive
+        run: |
+          xcodebuild docbuild \
+            -scheme CapsuleSegmentKit \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath .build/docbuild
+
+      - name: Transform the archive for static hosting
+        run: |
+          ARCHIVE=$(find .build/docbuild -type d -name 'CapsuleSegmentKit.doccarchive' | head -n 1)
+          xcrun docc process-archive transform-for-static-hosting "$ARCHIVE" \
+            --output-path site \
+            --hosting-base-path CapsuleSegmentKit
+          # Send visitors of the site root to the documentation.
+          echo '<meta http-equiv="refresh" content="0; url=documentation/capsulesegmentkit/">' \
+            > site/index.html
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
