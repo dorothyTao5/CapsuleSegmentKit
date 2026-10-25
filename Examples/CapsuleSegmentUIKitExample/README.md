@@ -58,7 +58,7 @@ final class MyViewController: UIViewController {
 | File | Description |
 |------|-------------|
 | `CapsuleSegmentHostingController.swift` | The UIKit–SwiftUI bridge. Copy it into your project. |
-| `ViewController.swift` | Three examples: custom colors that switch content, the default style, and a custom corner radius without dragging. |
+| `ViewController.swift` | Three examples: custom colors that switch content, the default style, and SF Symbols with a custom corner radius and no dragging. |
 | `AppDelegate.swift` / `SceneDelegate.swift` | The app entry point without a storyboard. |
 
 Requires iOS 17 or later.

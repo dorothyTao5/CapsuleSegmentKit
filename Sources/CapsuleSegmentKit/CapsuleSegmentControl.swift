@@ -16,14 +16,21 @@ import SwiftUI
 /// }
 /// ```
 ///
+/// Items can also show SF Symbols. See ``CapsuleSegmentItem``.
+///
 /// People can tap any item, or press and drag the selected segment. When they release it,
 /// the segment snaps to the nearest item.
 public struct CapsuleSegmentControl: View {
     /// The index of the selected item.
     @Binding public var selectedIndex: Int
 
+    /// The items, in display order.
+    public let segments: [CapsuleSegmentItem]
+
     /// The titles of the items, in display order.
-    public let items: [String]
+    public var items: [String] {
+        segments.map(\.title)
+    }
 
     /// The color of the track behind the items.
     public let backgroundColor: Color
@@ -74,7 +81,7 @@ public struct CapsuleSegmentControl: View {
         var translation: CGFloat
     }
 
-    /// Creates a capsule segmented control.
+    /// Creates a capsule segmented control with title-only items.
     ///
     /// - Parameters:
     ///   - selectedIndex: A binding to the index of the selected item.
@@ -106,8 +113,56 @@ public struct CapsuleSegmentControl: View {
         isDragEnabled: Bool = true,
         hapticFeedback: Bool = true
     ) {
+        self.init(
+            selectedIndex: selectedIndex,
+            items: items.map { CapsuleSegmentItem($0) },
+            backgroundColor: backgroundColor,
+            selectedSegmentColor: selectedSegmentColor,
+            textColor: textColor,
+            selectedTextColor: selectedTextColor,
+            cornerRadius: cornerRadius,
+            segmentInset: segmentInset,
+            height: height,
+            font: font,
+            isDragEnabled: isDragEnabled,
+            hapticFeedback: hapticFeedback
+        )
+    }
+
+    /// Creates a capsule segmented control with items that can show SF Symbols.
+    ///
+    /// - Parameters:
+    ///   - selectedIndex: A binding to the index of the selected item.
+    ///   - items: The items, each with a title and an optional SF Symbol.
+    ///   - backgroundColor: The color of the track behind the items.
+    ///   - selectedSegmentColor: The color of the segment that marks the selected item.
+    ///   - textColor: The color of the titles and images of unselected items.
+    ///   - selectedTextColor: The color of the title and image of the selected item.
+    ///   - cornerRadius: The corner radius of both ends. Pass `nil` for fully rounded ends.
+    ///     Values larger than half the height are reduced to half the height.
+    ///   - segmentInset: The spacing between the selected segment and the edge of the track.
+    ///   - height: The height of the control.
+    ///   - font: The font of the item titles and images.
+    ///   - isDragEnabled: A Boolean value that indicates whether people can drag the selected
+    ///     segment.
+    ///   - hapticFeedback: A Boolean value that indicates whether changing the selection plays
+    ///     haptic feedback.
+    public init(
+        selectedIndex: Binding<Int>,
+        items: [CapsuleSegmentItem],
+        backgroundColor: Color = Color.gray.opacity(0.2),
+        selectedSegmentColor: Color = .white,
+        textColor: Color = .primary,
+        selectedTextColor: Color = .primary,
+        cornerRadius: CGFloat? = nil,
+        segmentInset: CGFloat = 2,
+        height: CGFloat = 40,
+        font: Font = .system(size: 14, weight: .medium),
+        isDragEnabled: Bool = true,
+        hapticFeedback: Bool = true
+    ) {
         self._selectedIndex = selectedIndex
-        self.items = items
+        self.segments = items
         self.backgroundColor = backgroundColor
         self.selectedSegmentColor = selectedSegmentColor
         self.textColor = textColor
@@ -131,8 +186,8 @@ public struct CapsuleSegmentControl: View {
 
     /// The selected index, clamped to the range of valid item indices.
     var clampedIndex: Int {
-        guard !items.isEmpty else { return 0 }
-        return min(max(selectedIndex, 0), items.count - 1)
+        guard !segments.isEmpty else { return 0 }
+        return min(max(selectedIndex, 0), segments.count - 1)
     }
 
     /// Returns the index of the item at the given horizontal position.
@@ -157,7 +212,7 @@ public struct CapsuleSegmentControl: View {
 
     public var body: some View {
         GeometryReader { geometry in
-            let count = max(items.count, 1)
+            let count = max(segments.count, 1)
             let totalHeight = geometry.size.height
             let itemWidth = geometry.size.width / CGFloat(count)
 
@@ -174,19 +229,19 @@ public struct CapsuleSegmentControl: View {
                 ? Self.clampedThumbX(
                     restingX + (drag?.translation ?? 0),
                     itemWidth: itemWidth,
-                    count: items.count
+                    count: segments.count
                 )
                 : restingX
             // The highlighted title follows the segment while dragging.
             let highlightedIndex = isDraggingThumb
-                ? Self.nearestIndex(forThumbX: thumbX, itemWidth: itemWidth, count: items.count)
+                ? Self.nearestIndex(forThumbX: thumbX, itemWidth: itemWidth, count: segments.count)
                 : clampedIndex
 
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: outerRadius, style: .continuous)
                     .fill(backgroundColor)
 
-                if !items.isEmpty {
+                if !segments.isEmpty {
                     RoundedRectangle(cornerRadius: innerRadius, style: .continuous)
                         .fill(selectedSegmentColor)
                         .frame(width: segmentWidth, height: segmentHeight)
@@ -197,7 +252,7 @@ public struct CapsuleSegmentControl: View {
                 }
 
                 HStack(spacing: 0) {
-                    ForEach(items.indices, id: \.self) { index in
+                    ForEach(segments.indices, id: \.self) { index in
                         #if os(tvOS)
                         // tvOS has no touch dragging, so each item is a focusable button.
                         Button {
@@ -231,14 +286,14 @@ public struct CapsuleSegmentControl: View {
         .frame(height: height)
     }
 
-    /// Returns the title view for the item at the given index.
+    /// Returns the view for the item at the given index.
     private func label(
         at index: Int,
         highlightedIndex: Int,
         width: CGFloat,
         height: CGFloat
     ) -> some View {
-        Text(items[index])
+        content(for: segments[index])
             .font(font)
             .lineLimit(1)
             .foregroundStyle(highlightedIndex == index ? selectedTextColor : textColor)
@@ -251,6 +306,18 @@ public struct CapsuleSegmentControl: View {
             }
     }
 
+    /// Returns a label when the item has an SF Symbol, or plain text otherwise.
+    ///
+    /// Using `Label` lets callers choose how to show images with `.labelStyle(_:)`.
+    @ViewBuilder
+    private func content(for segment: CapsuleSegmentItem) -> some View {
+        if let systemImage = segment.systemImage {
+            Label(segment.title, systemImage: systemImage)
+        } else {
+            Text(segment.title)
+        }
+    }
+
     #if !os(tvOS)
     /// Returns a gesture that handles both taps and drags.
     ///
@@ -260,12 +327,12 @@ public struct CapsuleSegmentControl: View {
     private func dragGesture(itemWidth: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .updating($drag) { value, state, _ in
-                guard !items.isEmpty else { return }
+                guard !segments.isEmpty else { return }
                 if state == nil {
                     let startIndex = Self.index(
                         atX: value.startLocation.x,
                         itemWidth: itemWidth,
-                        count: items.count
+                        count: segments.count
                     )
                     state = DragInfo(
                         isOnThumb: isDragEnabled && startIndex == clampedIndex,
@@ -275,28 +342,28 @@ public struct CapsuleSegmentControl: View {
                 state?.translation = value.translation.width
             }
             .onEnded { value in
-                guard !items.isEmpty else { return }
+                guard !segments.isEmpty else { return }
                 let didMove = abs(value.translation.width) > Self.tapThreshold
                     || abs(value.translation.height) > Self.tapThreshold
                 let startIndex = Self.index(
                     atX: value.startLocation.x,
                     itemWidth: itemWidth,
-                    count: items.count
+                    count: segments.count
                 )
 
                 var newIndex: Int?
                 if !didMove {
-                    newIndex = Self.index(atX: value.location.x, itemWidth: itemWidth, count: items.count)
+                    newIndex = Self.index(atX: value.location.x, itemWidth: itemWidth, count: segments.count)
                 } else if isDragEnabled && startIndex == clampedIndex {
                     let releasedX = Self.clampedThumbX(
                         CGFloat(clampedIndex) * itemWidth + value.translation.width,
                         itemWidth: itemWidth,
-                        count: items.count
+                        count: segments.count
                     )
                     newIndex = Self.nearestIndex(
                         forThumbX: releasedX,
                         itemWidth: itemWidth,
-                        count: items.count
+                        count: segments.count
                     )
                 }
 
@@ -311,19 +378,19 @@ public struct CapsuleSegmentControl: View {
 // MARK: - Previews
 
 /// A container that gives previews an interactive selection state.
-private struct PreviewHost: View {
+private struct PreviewHost<Content: View>: View {
     @State private var index: Int
-    private let makeControl: (Binding<Int>) -> CapsuleSegmentControl
+    private let makeContent: (Binding<Int>) -> Content
 
     init(
         _ initialIndex: Int = 0,
-        _ makeControl: @escaping (Binding<Int>) -> CapsuleSegmentControl
+        @ViewBuilder _ makeContent: @escaping (Binding<Int>) -> Content
     ) {
         _index = State(initialValue: initialIndex)
-        self.makeControl = makeControl
+        self.makeContent = makeContent
     }
 
-    var body: some View { makeControl($index) }
+    var body: some View { makeContent($index) }
 }
 
 #Preview("Default") {
@@ -365,6 +432,35 @@ private struct PreviewHost: View {
         }
         PreviewHost(1) {
             CapsuleSegmentControl(selectedIndex: $0, items: ["Capsule", "Option 2"])
+        }
+    }
+    .padding()
+}
+
+
+#Preview("SF Symbols") {
+    VStack(spacing: 20) {
+        PreviewHost {
+            CapsuleSegmentControl(
+                selectedIndex: $0,
+                items: [
+                    CapsuleSegmentItem("List", systemImage: "list.bullet"),
+                    CapsuleSegmentItem("Grid", systemImage: "square.grid.2x2"),
+                ]
+            )
+        }
+        PreviewHost(1) {
+            CapsuleSegmentControl(
+                selectedIndex: $0,
+                items: [
+                    CapsuleSegmentItem("Day", systemImage: "sun.max"),
+                    CapsuleSegmentItem("Night", systemImage: "moon"),
+                    CapsuleSegmentItem("Auto", systemImage: "circle.lefthalf.filled"),
+                ],
+                selectedSegmentColor: .indigo,
+                selectedTextColor: .white
+            )
+            .labelStyle(.iconOnly)
         }
     }
     .padding()

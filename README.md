@@ -11,6 +11,7 @@ A customizable SwiftUI capsule segmented control with adjustable corner radius, 
 ## Features
 
 - **Customizable corner radius**: a full capsule (half-circle ends) by default, or any radius you choose; values larger than half the height are capped to a capsule
+- **SF Symbols**: show an image with each title, or images only
 - **Customizable colors**: background, selected segment, text, and selected text
 - **Flexible item count**: 2 items by default, any number supported
 - **Tap and drag to switch**: press and drag the selected segment, and it snaps to the nearest item with a spring animation on release
@@ -79,6 +80,33 @@ CapsuleSegmentControl(
 )
 ```
 
+### SF Symbols
+
+Pass `CapsuleSegmentItem` values to show an SF Symbol with each title:
+
+```swift
+CapsuleSegmentControl(
+    selectedIndex: $selectedIndex,
+    items: [
+        CapsuleSegmentItem("List", systemImage: "list.bullet"),
+        CapsuleSegmentItem("Grid", systemImage: "square.grid.2x2"),
+    ]
+)
+```
+
+To show only the images, apply `.labelStyle(.iconOnly)`. VoiceOver still reads each title.
+
+```swift
+CapsuleSegmentControl(
+    selectedIndex: $selectedIndex,
+    items: [
+        CapsuleSegmentItem("Day", systemImage: "sun.max"),
+        CapsuleSegmentItem("Night", systemImage: "moon"),
+    ]
+)
+.labelStyle(.iconOnly)
+```
+
 ### UIKit
 
 Wrap the control in a `UIHostingController` and add it like any other view controller. The complete bridge is in [`CapsuleSegmentHostingController.swift`](Examples/CapsuleSegmentUIKitExample/CapsuleSegmentUIKitExample/CapsuleSegmentHostingController.swift), which you can copy into your project.
@@ -98,7 +126,7 @@ segment.selectedIndex = 1                                 // switch programmatic
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `selectedIndex` | `Binding<Int>` | Required | The selected index |
-| `items` | `[String]` | `["Option 1", "Option 2"]` | Item titles |
+| `items` | `[String]` or `[CapsuleSegmentItem]` | `["Option 1", "Option 2"]` | Item titles, optionally with SF Symbols |
 | `backgroundColor` | `Color` | `Color.gray.opacity(0.2)` | Background color |
 | `selectedSegmentColor` | `Color` | `.white` | Color of the selected segment |
 | `textColor` | `Color` | `.primary` | Text color of unselected items |

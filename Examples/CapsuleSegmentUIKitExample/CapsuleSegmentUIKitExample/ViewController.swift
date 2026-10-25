@@ -1,3 +1,4 @@
+import CapsuleSegmentKit
 import UIKit
 
 /// Shows how to use CapsuleSegmentKit in a UIKit app built entirely in code.
@@ -29,10 +30,14 @@ final class ViewController: UIViewController {
 
     private let defaultSegment = CapsuleSegmentHostingController()
 
-    // MARK: - Example 3: Custom Corner Radius Without Dragging
+    // MARK: - Example 3: SF Symbols With a Custom Corner Radius, Without Dragging
 
     private let roundedSegment = CapsuleSegmentHostingController(
-        items: ["Day", "Week", "Month"],
+        items: [
+            CapsuleSegmentItem("Day", systemImage: "sun.max"),
+            CapsuleSegmentItem("Week", systemImage: "calendar"),
+            CapsuleSegmentItem("Month", systemImage: "calendar.circle"),
+        ],
         style: CapsuleSegmentStyle(
             backgroundColor: UIColor.systemIndigo.withAlphaComponent(0.15),
             selectedSegmentColor: .systemIndigo,
@@ -58,11 +63,11 @@ final class ViewController: UIViewController {
         }
         defaultSegment.onSelectionChanged = { [weak self] index in
             guard let self else { return }
-            statusLabel.text = "Default style selected: \(defaultSegment.items[index])"
+            statusLabel.text = "Default style selected: \(defaultSegment.items[index].title)"
         }
         roundedSegment.onSelectionChanged = { [weak self] index in
             guard let self else { return }
-            statusLabel.text = "Custom radius selected: \(roundedSegment.items[index])"
+            statusLabel.text = "SF Symbols selected: \(roundedSegment.items[index].title)"
         }
 
         showPage(at: pageSegment.selectedIndex, animated: false)
@@ -106,7 +111,7 @@ final class ViewController: UIViewController {
             switchButton,
             makeSectionTitle("Example 2: Default Style"),
             defaultSegment.view,
-            makeSectionTitle("Example 3: Corner Radius 8, No Dragging"),
+            makeSectionTitle("Example 3: SF Symbols, Corner Radius 8, No Dragging"),
             roundedSegment.view,
             statusLabel,
         ])

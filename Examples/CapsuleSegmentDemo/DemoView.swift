@@ -5,6 +5,7 @@ import SwiftUI
 struct DemoView: View {
     @State private var selectedIndex = 0
     @State private var itemCount = 2
+    @State private var iconStyle = IconStyle.none
 
     // Corner radius
     @State private var usesCapsuleShape = true
@@ -24,28 +25,32 @@ struct DemoView: View {
     @State private var isDragEnabled = true
     @State private var hapticFeedback = true
 
-    private var items: [String] {
-        (1...itemCount).map { "Option \($0)" }
+    /// How the demo shows SF Symbols.
+    enum IconStyle: String, CaseIterable, Identifiable {
+        case none = "None"
+        case titleAndIcon = "Title and Icon"
+        case iconOnly = "Icon Only"
+
+        var id: Self { self }
+    }
+
+    private static let symbols = ["sun.max", "moon", "star", "heart", "bell", "gear"]
+
+    private var items: [CapsuleSegmentItem] {
+        (0..<itemCount).map { index in
+            CapsuleSegmentItem(
+                "Option \(index + 1)",
+                systemImage: iconStyle == .none ? nil : Self.symbols[index]
+            )
+        }
     }
 
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 16) {
-                CapsuleSegmentControl(
-                    selectedIndex: $selectedIndex,
-                    items: items,
-                    backgroundColor: backgroundColor,
-                    selectedSegmentColor: selectedSegmentColor,
-                    textColor: textColor,
-                    selectedTextColor: selectedTextColor,
-                    cornerRadius: usesCapsuleShape ? nil : cornerRadius,
-                    segmentInset: segmentInset,
-                    height: height,
-                    isDragEnabled: isDragEnabled,
-                    hapticFeedback: hapticFeedback
-                )
+                segmentControl
 
-                Text("Selected: \(items[min(selectedIndex, items.count - 1)]) (index \(selectedIndex))")
+                Text("Selected: \(items[min(selectedIndex, items.count - 1)].title) (index \(selectedIndex))")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -64,6 +69,11 @@ struct DemoView: View {
 
                 Section("Items") {
                     Stepper("Number of Items: \(itemCount)", value: $itemCount, in: 1...6)
+                    Picker("SF Symbols", selection: $iconStyle) {
+                        ForEach(IconStyle.allCases) { style in
+                            Text(style.rawValue).tag(style)
+                        }
+                    }
                 }
 
                 Section("Corner Radius") {
@@ -122,6 +132,30 @@ struct DemoView: View {
         // Keep the selection valid when the number of items shrinks.
         .onChange(of: itemCount) { _, newCount in
             if selectedIndex >= newCount { selectedIndex = newCount - 1 }
+        }
+    }
+
+    /// The control configured from the current settings.
+    @ViewBuilder
+    private var segmentControl: some View {
+        let control = CapsuleSegmentControl(
+            selectedIndex: $selectedIndex,
+            items: items,
+            backgroundColor: backgroundColor,
+            selectedSegmentColor: selectedSegmentColor,
+            textColor: textColor,
+            selectedTextColor: selectedTextColor,
+            cornerRadius: usesCapsuleShape ? nil : cornerRadius,
+            segmentInset: segmentInset,
+            height: height,
+            isDragEnabled: isDragEnabled,
+            hapticFeedback: hapticFeedback
+        )
+
+        if iconStyle == .iconOnly {
+            control.labelStyle(.iconOnly)
+        } else {
+            control
         }
     }
 

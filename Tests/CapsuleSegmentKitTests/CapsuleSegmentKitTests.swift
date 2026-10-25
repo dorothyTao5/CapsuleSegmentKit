@@ -104,4 +104,36 @@ struct CapsuleSegmentKitTests {
         #expect(CapsuleSegmentControl.nearestIndex(forThumbX: 60, itemWidth: 100, count: 3) == 1)
         #expect(CapsuleSegmentControl.nearestIndex(forThumbX: 190, itemWidth: 100, count: 3) == 2)
     }
+
+    // MARK: - SF Symbols
+
+    @Test("Creates title-only items from strings")
+    func titleOnlyItems() {
+        let control = CapsuleSegmentControl(selectedIndex: makeBinding(), items: ["Day", "Week"])
+        #expect(control.segments.map(\.title) == ["Day", "Week"])
+        #expect(control.segments.allSatisfy { $0.systemImage == nil })
+    }
+
+    @Test("Keeps the SF Symbol of each item")
+    func itemsWithSymbols() {
+        let control = CapsuleSegmentControl(
+            selectedIndex: makeBinding(),
+            items: [
+                CapsuleSegmentItem("List", systemImage: "list.bullet"),
+                CapsuleSegmentItem("Grid", systemImage: "square.grid.2x2"),
+            ]
+        )
+        #expect(control.items == ["List", "Grid"])
+        #expect(control.segments.map(\.systemImage) == ["list.bullet", "square.grid.2x2"])
+    }
+
+    @Test("Mixes items with and without SF Symbols")
+    func mixedItems() {
+        let control = CapsuleSegmentControl(
+            selectedIndex: makeBinding(),
+            items: [CapsuleSegmentItem("Map", systemImage: "map"), "List"]
+        )
+        #expect(control.segments[0].systemImage == "map")
+        #expect(control.segments[1] == CapsuleSegmentItem("List"))
+    }
 }

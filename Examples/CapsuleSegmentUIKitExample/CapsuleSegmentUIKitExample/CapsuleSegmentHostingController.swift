@@ -22,13 +22,13 @@ struct CapsuleSegmentStyle {
 @Observable
 final class CapsuleSegmentModel {
     var selectedIndex: Int
-    var items: [String]
+    var items: [CapsuleSegmentItem]
     var style: CapsuleSegmentStyle
 
     @ObservationIgnored
     var onChange: ((Int) -> Void)?
 
-    init(items: [String], selectedIndex: Int, style: CapsuleSegmentStyle) {
+    init(items: [CapsuleSegmentItem], selectedIndex: Int, style: CapsuleSegmentStyle) {
         self.items = items
         self.selectedIndex = selectedIndex
         self.style = style
@@ -59,7 +59,12 @@ struct CapsuleSegmentRootView: View {
 /// A view controller that displays a capsule segmented control in UIKit.
 ///
 /// ```swift
-/// let segment = CapsuleSegmentHostingController(items: ["A", "B"])
+/// let segment = CapsuleSegmentHostingController(
+///     items: [
+///         CapsuleSegmentItem("List", systemImage: "list.bullet"),
+///         CapsuleSegmentItem("Grid", systemImage: "square.grid.2x2"),
+///     ]
+/// )
 /// segment.onSelectionChanged = { index in print(index) }
 /// addChild(segment)
 /// view.addSubview(segment.view)
@@ -77,14 +82,16 @@ final class CapsuleSegmentHostingController: UIHostingController<CapsuleSegmentR
         set { model.selectedIndex = newValue }
     }
 
-    /// The titles of the items.
-    var items: [String] {
+    /// The items, each with a title and an optional SF Symbol.
+    ///
+    /// String literals create title-only items, so `["A", "B"]` also works.
+    var items: [CapsuleSegmentItem] {
         get { model.items }
         set { model.items = newValue }
     }
 
     init(
-        items: [String] = ["Option 1", "Option 2"],
+        items: [CapsuleSegmentItem] = ["Option 1", "Option 2"],
         selectedIndex: Int = 0,
         style: CapsuleSegmentStyle = CapsuleSegmentStyle()
     ) {

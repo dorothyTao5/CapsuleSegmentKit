@@ -11,6 +11,7 @@
 ## 功能
 
 - **兩側弧度可自訂**：預設為半圓（膠囊形），也可指定圓角半徑；超過高度一半時自動限制為半圓
+- **支援 SF Symbols**：每個項目可以顯示圖示加文字，也可以只顯示圖示
 - **顏色可自訂**：背景、選中 segment、文字、選中文字
 - **數量彈性**：預設 2 個項目，可傳入任意數量
 - **點擊與拖曳切換**：按住選中的 segment 左右拖曳，放開後以彈簧動畫吸附到最近的選項
@@ -79,6 +80,33 @@ CapsuleSegmentControl(
 )
 ```
 
+### SF Symbols
+
+傳入 `CapsuleSegmentItem`，就能在標題旁邊顯示 SF Symbol：
+
+```swift
+CapsuleSegmentControl(
+    selectedIndex: $selectedIndex,
+    items: [
+        CapsuleSegmentItem("列表", systemImage: "list.bullet"),
+        CapsuleSegmentItem("格狀", systemImage: "square.grid.2x2"),
+    ]
+)
+```
+
+只顯示圖示時，加上 `.labelStyle(.iconOnly)`。VoiceOver 仍然會唸出每個項目的標題。
+
+```swift
+CapsuleSegmentControl(
+    selectedIndex: $selectedIndex,
+    items: [
+        CapsuleSegmentItem("白天", systemImage: "sun.max"),
+        CapsuleSegmentItem("夜晚", systemImage: "moon"),
+    ]
+)
+.labelStyle(.iconOnly)
+```
+
 ### UIKit
 
 把元件包在 `UIHostingController` 裡，就能像一般的 view controller 一樣加入畫面。完整的橋接程式在 [`CapsuleSegmentHostingController.swift`](Examples/CapsuleSegmentUIKitExample/CapsuleSegmentUIKitExample/CapsuleSegmentHostingController.swift)，可直接複製到你的專案。
@@ -98,7 +126,7 @@ segment.selectedIndex = 1                                 // 用程式切換
 | 參數 | 類型 | 預設值 | 說明 |
 |------|------|--------|------|
 | `selectedIndex` | `Binding<Int>` | 必填 | 選中的索引 |
-| `items` | `[String]` | `["Option 1", "Option 2"]` | 項目標題 |
+| `items` | `[String]` 或 `[CapsuleSegmentItem]` | `["Option 1", "Option 2"]` | 項目標題，可加上 SF Symbol |
 | `backgroundColor` | `Color` | `Color.gray.opacity(0.2)` | 背景顏色 |
 | `selectedSegmentColor` | `Color` | `.white` | 選中 segment 的顏色 |
 | `textColor` | `Color` | `.primary` | 未選中的文字顏色 |
